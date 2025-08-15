@@ -1,7 +1,116 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>GiftPalette - 20代女性向けギフト専門店</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="home-container">
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">💝 GiftPalette</h1>
+            <p class="hero-subtitle">あなたの大切な人への完璧なギフトを見つけよう</p>
+            <p class="hero-description">
+                20代女性のライフスタイルに寄り添った、特別なギフトアイテムを厳選してお届け。
+                毎日を彩る可愛くて実用的なアイテムで、大切な人を笑顔に。
+            </p>
+            <div class="hero-actions">
+                <button class="btn btn-primary" @onclick="GoToProducts">
+                    🛍️ 商品を見る
+                </button>
+                <button class="btn btn-secondary" @onclick="GoToCart">
+                    🛒 カートを見る
+                </button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="hero-decoration">
+                <div class="decoration-item">🎁</div>
+                <div class="decoration-item">💐</div>
+                <div class="decoration-item">✨</div>
+                <div class="decoration-item">🌸</div>
+                <div class="decoration-item">💎</div>
+                <div class="decoration-item">🦄</div>
+            </div>
+        </div>
+    </section>
 
-Welcome to your new app.
+    <section class="features-section">
+        <h2 class="section-title">GiftPaletteの特徴</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>ターゲット特化</h3>
+                <p>20代女性のライフスタイルに特化した、厳選されたギフトアイテム</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💕</div>
+                <h3>キュートなデザイン</h3>
+                <p>見た目も可愛く、もらって嬉しいポップでキュートなアイテムばかり</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>簡単注文</h3>
+                <p>直感的な操作で簡単にお買い物。スムーズなカート機能で快適ショッピング</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚚</div>
+                <h3>迅速配送</h3>
+                <p>最短翌日お届け。大切な記念日にも間に合う迅速配送サービス</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="categories-section">
+        <h2 class="section-title">人気カテゴリー</h2>
+        <div class="categories-grid">
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("アクセサリー"))">
+                <div class="category-icon">💎</div>
+                <h3>アクセサリー</h3>
+                <p>ネックレス、ピアス、リングなど</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("美容・リラックス"))">
+                <div class="category-icon">🌸</div>
+                <h3>美容・リラックス</h3>
+                <p>スキンケア、アロマ、バスグッズ</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("インテリア"))">
+                <div class="category-icon">🏠</div>
+                <h3>インテリア</h3>
+                <p>雑貨、クッション、照明など</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("ファッション"))">
+                <div class="category-icon">👗</div>
+                <h3>ファッション</h3>
+                <p>バッグ、スカーフ、小物など</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>今すぐ素敵なギフトを見つけよう</h2>
+            <p>あなたの大切な人への特別な贈り物が、きっと見つかります</p>
+            <button class="btn btn-cta" @onclick="GoToProducts">
+                商品一覧を見る ✨
+            </button>
+        </div>
+    </section>
+</div>
+
+@code {
+    private void GoToProducts()
+    {
+        Navigation.NavigateTo("/products");
+    }
+
+    private void GoToCart()
+    {
+        Navigation.NavigateTo("/cart");
+    }
+
+    private void GoToCategoryProducts(string category)
+    {
+        Navigation.NavigateTo($"/products?category={Uri.EscapeDataString(category)}");
+    }
+}
+
+

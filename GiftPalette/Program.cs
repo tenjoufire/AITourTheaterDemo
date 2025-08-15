@@ -1,10 +1,19 @@
 using GiftPalette.Components;
+using GiftPalette.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add HttpClient for API calls
+builder.Services.AddHttpClient();
+
+// Add application services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddSingleton<IOrderService, OrderService>();
 
 var app = builder.Build();
 
