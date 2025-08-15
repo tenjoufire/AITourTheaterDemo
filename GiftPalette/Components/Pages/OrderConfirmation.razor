@@ -1,0 +1,147 @@
+@page "/order-confirmation/{OrderId:int}"
+@page "/注文確認/{OrderId:int}"
+@inject IOrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>注文確認 - GiftPalette</PageTitle>
+
+<div class="confirmation-container">
+    @if (loading)
+    {
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>注文情報を読み込み中...</p>
+        </div>
+    }
+    else if (order == null)
+    {
+        <div class="error">
+            <h3>注文が見つかりません</h3>
+            <button class="btn btn-primary" @onclick="GoHome">
+                ホームに戻る
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="success-header">
+            <div class="success-icon">✅</div>
+            <h1>ご注文ありがとうございます！</h1>
+            <p>注文が正常に受け付けられました。</p>
+        </div>
+
+        <div class="order-details">
+            <div class="order-info-card">
+                <h3>注文情報</h3>
+                <div class="info-row">
+                    <span class="label">注文番号：</span>
+                    <span class="value">@order.OrderNumber</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">注文日時：</span>
+                    <span class="value">@order.CreatedAt.ToString("yyyy年MM月dd日 HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">お客様名：</span>
+                    <span class="value">@order.CustomerName</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">メールアドレス：</span>
+                    <span class="value">@order.CustomerEmail</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">お届け先：</span>
+                    <span class="value">@order.ShippingAddress</span>
+                </div>
+                <div class="info-row total">
+                    <span class="label">合計金額：</span>
+                    <span class="value">¥@order.TotalAmount.ToString("N0")</span>
+                </div>
+            </div>
+
+            <div class="order-items-card">
+                <h3>ご注文商品</h3>
+                @foreach (var item in order.Items)
+                {
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="@item.ImageUrl" alt="@item.ProductName" />
+                        </div>
+                        <div class="item-details">
+                            <h4>@item.ProductName</h4>
+                            <div class="item-info">
+                                <span>単価: ¥@item.Price.ToString("N0")</span>
+                                <span>数量: @(item.Quantity)個</span>
+                                <span class="item-total">小計: ¥@((item.Price * item.Quantity).ToString("N0"))</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="next-steps">
+                <h3>今後の流れ</h3>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>確認メール送信</h4>
+                        <p>ご登録いただいたメールアドレスに確認メールをお送りします。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>商品準備</h4>
+                        <p>1-2営業日以内に商品の準備を開始いたします。</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>発送・お届け</h4>
+                        <p>準備完了後、発送いたします。お届けまで3-5営業日程度お時間をいただきます。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" @onclick="GoToProducts">
+                    他の商品も見る
+                </button>
+                <button class="btn btn-secondary" @onclick="GoToOrderHistory">
+                    注文履歴を確認
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    
+    private Order? order;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        order = await OrderService.GetOrderAsync(OrderId);
+        loading = false;
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private void GoToProducts()
+    {
+        Navigation.NavigateTo("/products");
+    }
+
+    private void GoToOrderHistory()
+    {
+        Navigation.NavigateTo("/order-history");
+    }
+}
+

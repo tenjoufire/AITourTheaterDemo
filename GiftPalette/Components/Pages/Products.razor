@@ -1,0 +1,142 @@
+@page "/products"
+@page "/商品一覧"
+@inject IProductService ProductService
+@inject ICartService CartService
+@rendermode InteractiveServer
+
+<PageTitle>商品一覧 - GiftPalette</PageTitle>
+<link href="~/css/products.css" rel="stylesheet" />
+
+<div class="products-container">
+    <div class="page-header">
+        <h1 class="page-title">💝 商品一覧</h1>
+        <p class="page-subtitle">あなたの大切な人への素敵なギフトを見つけよう</p>
+    </div>
+
+    @if (loading)
+    {
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>商品を読み込み中...</p>
+        </div>
+    }
+    else if (products.Count == 0)
+    {
+        <div class="empty-state">
+            <p>商品が見つかりませんでした。</p>
+        </div>
+    }
+    else
+    {
+        <div class="category-filter">
+            <button class="filter-btn @(selectedCategory == "" ? "active" : "")" @onclick="@(() => FilterByCategory(""))">
+                すべて
+            </button>
+            @foreach (var category in categories)
+            {
+                <button class="filter-btn @(selectedCategory == category ? "active" : "")" @onclick="@(() => FilterByCategory(category))">
+                    @category
+                </button>
+            }
+        </div>
+
+        <div class="products-grid">
+            @foreach (var product in filteredProducts)
+            {
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="@product.ImageUrl" alt="@product.Name" />
+                        @if (product.Stock <= 5)
+                        {
+                            <div class="stock-badge">残り@(product.Stock)個</div>
+                        }
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">@product.Name</h3>
+                        <p class="product-description">@product.Description</p>
+                        <div class="product-category">@product.Category</div>
+                        <div class="product-price">¥@product.Price.ToString("N0")</div>
+                        <div class="product-actions">
+                            @if (product.IsAvailable && product.Stock > 0)
+                            {
+                                <button class="btn btn-add-cart" @onclick="@(() => AddToCart(product.Id))" disabled="@isAddingToCart">
+                                    @if (isAddingToCart)
+                                    {
+                                        <span>追加中...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>🛒 カートに追加</span>
+                                    }
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-out-of-stock" disabled>
+                                    在庫切れ
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product> products = new();
+    private List<Product> filteredProducts = new();
+    private List<string> categories = new();
+    private string selectedCategory = "";
+    private bool loading = true;
+    private bool isAddingToCart = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        loading = true;
+        products = await ProductService.GetProductsAsync();
+        
+        categories = products.Select(p => p.Category).Distinct().OrderBy(c => c).ToList();
+        filteredProducts = products;
+        
+        loading = false;
+    }
+
+    private void FilterByCategory(string category)
+    {
+        selectedCategory = category;
+        if (string.IsNullOrEmpty(category))
+        {
+            filteredProducts = products;
+        }
+        else
+        {
+            filteredProducts = products.Where(p => p.Category == category).ToList();
+        }
+    }
+
+    private async Task AddToCart(int productId)
+    {
+        isAddingToCart = true;
+        try
+        {
+            await CartService.AddToCartAsync(productId, 1);
+            // Show success message or update UI
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error adding to cart: {ex.Message}");
+        }
+        finally
+        {
+            isAddingToCart = false;
+        }
+    }
+}
