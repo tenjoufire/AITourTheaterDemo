@@ -28,7 +28,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync("https://localhost:7261/api/products");
+            var response = await _httpClient.GetAsync("http://localhost:5261/api/products");
             
             if (response.IsSuccessStatusCode)
             {
@@ -49,7 +49,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7261/api/products/{id}");
+            var response = await _httpClient.GetAsync($"http://localhost:5261/api/products/{id}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -69,7 +69,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7261/api/products/category/{category}");
+            var response = await _httpClient.GetAsync($"http://localhost:5261/api/products/category/{category}");
             
             if (response.IsSuccessStatusCode)
             {
