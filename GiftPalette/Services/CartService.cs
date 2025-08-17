@@ -41,7 +41,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"http://localhost:5001/api/cart/{CartId}");
+            var response = await _httpClient.GetAsync($"http://localhost:5062/api/cart/{CartId}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -66,7 +66,7 @@ public class CartService : ICartService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            var response = await _httpClient.PostAsync($"http://localhost:5001/api/cart/{CartId}/add", content);
+            var response = await _httpClient.PostAsync($"http://localhost:5062/api/cart/{CartId}/add", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -91,7 +91,7 @@ public class CartService : ICartService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            var response = await _httpClient.PutAsync($"http://localhost:5001/api/cart/{CartId}/update", content);
+            var response = await _httpClient.PutAsync($"http://localhost:5062/api/cart/{CartId}/update", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -112,7 +112,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"http://localhost:5001/api/cart/{CartId}/remove/{productId}");
+            var response = await _httpClient.DeleteAsync($"http://localhost:5062/api/cart/{CartId}/remove/{productId}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -133,7 +133,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"http://localhost:5001/api/cart/{CartId}/clear");
+            var response = await _httpClient.DeleteAsync($"http://localhost:5062/api/cart/{CartId}/clear");
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
