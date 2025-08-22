@@ -1,5 +1,6 @@
 @page "/products"
 @page "/商品一覧"
+@using GiftPalette.Components.Shared
 @inject IProductService ProductService
 @inject ICartService CartService
 @rendermode InteractiveServer
@@ -8,11 +9,6 @@
 <link href="~/css/products.css" rel="stylesheet" />
 
 <div class="products-container">
-    <div class="page-header">
-        <h1 class="page-title">💝 商品一覧</h1>
-        <p class="page-subtitle">あなたの大切な人への素敵なギフトを見つけよう</p>
-    </div>
-
     @if (loading)
     {
         <div class="loading">
@@ -28,6 +24,11 @@
     }
     else
     {
+        <div class="products-header">
+            <h1 class="products-title">すべての商品</h1>
+            <p class="products-count">@filteredProducts.Count 件の商品が見つかりました</p>
+        </div>
+
         <div class="category-filter">
             <button class="filter-btn @(selectedCategory == "" ? "active" : "")" @onclick="@(() => FilterByCategory(""))">
                 すべて
@@ -40,41 +41,39 @@
             }
         </div>
 
-        <div class="products-tile-grid">
+        <div class="products-grid">
             @foreach (var product in filteredProducts)
             {
-                <div class="product-tile">
-                    <div class="tile-image">
+                <div class="product-card">
+                    <div class="product-image">
                         <img src="@product.ImageUrl" alt="@product.Name" />
-                        @if (product.Stock <= 5)
-                        {
-                            <div class="stock-badge">残り@(product.Stock)個</div>
-                        }
-                        <div class="tile-overlay">
-                            <div class="tile-category">@product.Category</div>
-                        </div>
                     </div>
-                    <div class="tile-content">
-                        <h3 class="tile-name">@product.Name</h3>
-                        <div class="tile-price">¥@product.Price.ToString("N0")</div>
-                        <div class="tile-actions">
+                    <div class="product-info">
+                        <h3 class="product-name">@product.Name</h3>
+                        <p class="product-description">@product.Description</p>
+                        <div class="product-details">
+                            <div class="product-category">@product.Category</div>
+                            <div class="product-price">¥@product.Price.ToString("N0")</div>
+                        </div>
+                        <div class="product-stock">在庫あり (@product.Stock 個)</div>
+                        <div class="product-actions">
                             @if (product.IsAvailable && product.Stock > 0)
                             {
-                                <button class="tile-btn tile-btn-add" @onclick="@(() => AddToCart(product.Id))" disabled="@isAddingToCart">
+                                <button class="add-to-cart-btn" @onclick="@(() => AddToCart(product.Id))" disabled="@isAddingToCart">
                                     @if (isAddingToCart)
                                     {
                                         <span>追加中...</span>
                                     }
                                     else
                                     {
-                                        <span>🛒</span>
+                                        <span>カートに追加</span>
                                     }
                                 </button>
                             }
                             else
                             {
-                                <button class="tile-btn tile-btn-disabled" disabled>
-                                    ✖
+                                <button class="add-to-cart-btn disabled" disabled>
+                                    在庫切れ
                                 </button>
                             }
                         </div>
@@ -85,6 +84,8 @@
     }
 </div>
 
+<ToastNotification Title="@ToastTitle" Message="@ToastMessage" ShowToast="@ShowToast" ShowToastChanged="@((bool value) => ShowToast = value)" />
+
 @code {
     private List<Product> products = new();
     private List<Product> filteredProducts = new();
@@ -92,6 +93,9 @@
     private string selectedCategory = "";
     private bool loading = true;
     private bool isAddingToCart = false;
+    private bool ShowToast = false;
+    private string ToastTitle = "";
+    private string ToastMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,11 +132,16 @@
         try
         {
             await CartService.AddToCartAsync(productId, 1);
-            // Show success message or update UI
+            var product = products.FirstOrDefault(p => p.Id == productId);
+            ToastTitle = "カート追加";
+            ToastMessage = $"{product?.Name} がカートに追加されました！";
+            ShowToast = true;
         }
         catch (Exception ex)
         {
-            // Handle error
+            ToastTitle = "エラー";
+            ToastMessage = "カートへの追加に失敗しました。";
+            ShowToast = true;
             Console.WriteLine($"Error adding to cart: {ex.Message}");
         }
         finally
