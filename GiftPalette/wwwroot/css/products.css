@@ -67,25 +67,58 @@
 
 .filter-btn {
     padding: 10px 20px;
-    border: 1px solid #e2e8f0;
-    background-color: white;
-    color: #4a5568;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
+    transition: all 0.3s ease;
+    font-weight: 600;
     font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    border-width: 2px;
+    position: relative;
+    overflow: hidden;
 }
 
-.filter-btn:hover {
-    background-color: #f7fafc;
-    border-color: #cbd5e0;
+.filter-btn:not(.active) {
+    background-color: white;
+    border-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.filter-btn:not(.active):hover {
+    background-color: #f8fafc;
+    border-color: #4299e1;
+    color: #4299e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(66, 153, 225, 0.15);
 }
 
 .filter-btn.active {
     background-color: #4299e1;
     border-color: #4299e1;
     color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.filter-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 /* Products Grid */
@@ -287,11 +320,13 @@
     .category-filter {
         gap: 8px;
         margin-bottom: 30px;
+        justify-content: center;
     }
     
     .filter-btn {
         padding: 8px 16px;
         font-size: 0.85rem;
+        border-radius: 6px;
     }
     
     .product-info {
@@ -326,11 +361,14 @@
     
     .category-filter {
         gap: 6px;
+        justify-content: center;
     }
     
     .filter-btn {
         padding: 6px 12px;
         font-size: 0.8rem;
+        border-radius: 5px;
+        min-width: 60px;
     }
     
     .product-info {

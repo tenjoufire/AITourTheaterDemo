@@ -24,58 +24,60 @@
     }
     else
     {
-        <div class="products-header">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="products-title">すべての商品</h1>
-            <p class="products-count">@filteredProducts.Count 件の商品が見つかりました</p>
+            <span class="text-muted">@filteredProducts.Count 件の商品が見つかりました</span>
         </div>
 
         <div class="category-filter">
-            <button class="filter-btn @(selectedCategory == "" ? "active" : "")" @onclick="@(() => FilterByCategory(""))">
+            <button class="btn btn-outline-primary filter-btn @(selectedCategory == "" ? "active" : "")" @onclick="@(() => FilterByCategory(""))">
                 すべて
             </button>
             @foreach (var category in categories)
             {
-                <button class="filter-btn @(selectedCategory == category ? "active" : "")" @onclick="@(() => FilterByCategory(category))">
+                <button class="btn btn-outline-primary filter-btn @(selectedCategory == category ? "active" : "")" @onclick="@(() => FilterByCategory(category))">
                     @category
                 </button>
             }
         </div>
 
-        <div class="products-grid">
+        <div class="row">
             @foreach (var product in filteredProducts)
             {
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="@product.ImageUrl" alt="@product.Name" />
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">@product.Name</h3>
-                        <p class="product-description">@product.Description</p>
-                        <div class="product-details">
-                            <div class="product-category">@product.Category</div>
-                            <div class="product-price">¥@product.Price.ToString("N0")</div>
-                        </div>
-                        <div class="product-stock">在庫あり (@product.Stock 個)</div>
-                        <div class="product-actions">
-                            @if (product.IsAvailable && product.Stock > 0)
-                            {
-                                <button class="add-to-cart-btn" @onclick="@(() => AddToCart(product.Id))" disabled="@isAddingToCart">
-                                    @if (isAddingToCart)
-                                    {
-                                        <span>追加中...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>カートに追加</span>
-                                    }
-                                </button>
-                            }
-                            else
-                            {
-                                <button class="add-to-cart-btn disabled" disabled>
-                                    在庫切れ
-                                </button>
-                            }
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: contain;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text flex-grow-1">@product.Description</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="h5 text-primary">¥@product.Price.ToString("N0")</span>
+                                    <small class="text-muted">@product.Category</small>
+                                </div>
+                                @if (product.IsAvailable && product.Stock > 0)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-success">在庫あり (@product.Stock 個)</small>
+                                        <button class="btn btn-primary" @onclick="@(() => AddToCart(product.Id))" disabled="@isAddingToCart">
+                                            @if (isAddingToCart)
+                                            {
+                                                <span>追加中...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>カートに追加</span>
+                                            }
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-center">
+                                        <span class="badge bg-secondary">在庫切れ</span>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
