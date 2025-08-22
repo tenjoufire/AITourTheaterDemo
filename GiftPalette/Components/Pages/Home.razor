@@ -1,7 +1,7 @@
 ﻿@page "/"
 @inject NavigationManager Navigation
 
-<PageTitle>GiftPalette - 20代女性向けギフト専門店</PageTitle>
+<PageTitle>GiftPalette - みんなのためのギフト専門店</PageTitle>
 
 <div class="home-container">
     <section class="hero-section">
@@ -9,8 +9,8 @@
             <h1 class="hero-title">💝 GiftPalette</h1>
             <p class="hero-subtitle">あなたの大切な人への完璧なギフトを見つけよう</p>
             <p class="hero-description">
-                20代女性のライフスタイルに寄り添った、特別なギフトアイテムを厳選してお届け。
-                毎日を彩る可愛くて実用的なアイテムで、大切な人を笑顔に。
+                幅広い年代と性別の方に愛される、特別なギフトアイテムを厳選してお届け。
+                毎日を彩る素敵で実用的なアイテムで、大切な人を笑顔に。
             </p>
             <div class="hero-actions">
                 <button class="btn btn-primary" @onclick="GoToProducts">
@@ -38,13 +38,13 @@
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🎯</div>
-                <h3>ターゲット特化</h3>
-                <p>20代女性のライフスタイルに特化した、厳選されたギフトアイテム</p>
+                <h3>幅広いセレクション</h3>
+                <p>あらゆる年代・性別の方に喜ばれる、厳選されたギフトアイテム</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">💕</div>
-                <h3>キュートなデザイン</h3>
-                <p>見た目も可愛く、もらって嬉しいポップでキュートなアイテムばかり</p>
+                <div class="feature-icon">💝</div>
+                <h3>心温まるデザイン</h3>
+                <p>見た目も素敵で、もらって嬉しい特別感のあるアイテムばかり</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
@@ -75,12 +75,32 @@
             <div class="category-card" @onclick="@(() => GoToCategoryProducts("インテリア"))">
                 <div class="category-icon">🏠</div>
                 <h3>インテリア</h3>
-                <p>雑貨、クッション、照明など</p>
+                <p>雑貨、照明、時計など</p>
             </div>
             <div class="category-card" @onclick="@(() => GoToCategoryProducts("ファッション"))">
                 <div class="category-icon">👗</div>
                 <h3>ファッション</h3>
-                <p>バッグ、スカーフ、小物など</p>
+                <p>バッグ、アクセサリー、小物など</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("テクノロジー"))">
+                <div class="category-icon">📱</div>
+                <h3>テクノロジー</h3>
+                <p>スマートウォッチ、充電器、ガジェット</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("スポーツ・フィットネス"))">
+                <div class="category-icon">⚽</div>
+                <h3>スポーツ・フィットネス</h3>
+                <p>フィットネス用品、アウトドア用品</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("キッチン用品"))">
+                <div class="category-icon">🍳</div>
+                <h3>キッチン用品</h3>
+                <p>マグカップ、コーヒー、調理用品</p>
+            </div>
+            <div class="category-card" @onclick="@(() => GoToCategoryProducts("ホビー・ガーデニング"))">
+                <div class="category-icon">🌱</div>
+                <h3>ホビー・ガーデニング</h3>
+                <p>ゲーム、ガーデニング、DIYキット</p>
             </div>
         </div>
     </section>
