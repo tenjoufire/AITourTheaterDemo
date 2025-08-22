@@ -1,9 +1,24 @@
+using GiftPalette.API.Services;
+using GiftPalette.API.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IInventoryService, InventoryService>();
+builder.Services.AddSingleton<ICartService, CartService>();
+
+// Add CORS for local development
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -15,30 +30,85 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 
-var summaries = new[]
+// Inventory API endpoints
+app.MapGet("/api/products", async (IInventoryService inventoryService) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    var products = await inventoryService.GetProductsAsync();
+    return Results.Ok(products);
 })
-.WithName("GetWeatherForecast")
+.WithName("GetProducts")
+.WithOpenApi();
+
+app.MapGet("/api/products/{id:int}", async (int id, IInventoryService inventoryService) =>
+{
+    var product = await inventoryService.GetProductAsync(id);
+    return product != null ? Results.Ok(product) : Results.NotFound();
+})
+.WithName("GetProduct")
+.WithOpenApi();
+
+app.MapGet("/api/products/category/{category}", async (string category, IInventoryService inventoryService) =>
+{
+    var products = await inventoryService.GetProductsByCategoryAsync(category);
+    return Results.Ok(products);
+})
+.WithName("GetProductsByCategory")
+.WithOpenApi();
+
+app.MapPost("/api/inventory/check", async (CheckStockRequest request, IInventoryService inventoryService) =>
+{
+    var isInStock = await inventoryService.IsInStockAsync(request.ProductId, request.Quantity);
+    return Results.Ok(new { IsInStock = isInStock });
+})
+.WithName("CheckStock")
+.WithOpenApi();
+
+// Cart API endpoints
+app.MapGet("/api/cart/{cartId}", async (string cartId, ICartService cartService) =>
+{
+    var cart = await cartService.GetCartAsync(cartId);
+    return Results.Ok(cart);
+})
+.WithName("GetCart")
+.WithOpenApi();
+
+app.MapPost("/api/cart/{cartId}/add", async (string cartId, AddToCartRequest request, ICartService cartService) =>
+{
+    var cart = await cartService.AddToCartAsync(cartId, request.ProductId, request.Quantity);
+    return Results.Ok(cart);
+})
+.WithName("AddToCart")
+.WithOpenApi();
+
+app.MapPut("/api/cart/{cartId}/update", async (string cartId, UpdateCartRequest request, ICartService cartService) =>
+{
+    var cart = await cartService.UpdateCartItemAsync(cartId, request.ProductId, request.Quantity);
+    return Results.Ok(cart);
+})
+.WithName("UpdateCartItem")
+.WithOpenApi();
+
+app.MapDelete("/api/cart/{cartId}/remove/{productId:int}", async (string cartId, int productId, ICartService cartService) =>
+{
+    var cart = await cartService.RemoveFromCartAsync(cartId, productId);
+    return Results.Ok(cart);
+})
+.WithName("RemoveFromCart")
+.WithOpenApi();
+
+app.MapDelete("/api/cart/{cartId}/clear", async (string cartId, ICartService cartService) =>
+{
+    var success = await cartService.ClearCartAsync(cartId);
+    return Results.Ok(new { Success = success });
+})
+.WithName("ClearCart")
 .WithOpenApi();
 
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// Request/Response DTOs
+public record CheckStockRequest(int ProductId, int Quantity);
+public record AddToCartRequest(int ProductId, int Quantity);
+public record UpdateCartRequest(int ProductId, int Quantity);

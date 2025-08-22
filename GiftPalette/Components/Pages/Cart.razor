@@ -1,0 +1,224 @@
+@page "/cart"
+@page "/カート"
+@inject ICartService CartService
+@inject IOrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>ショッピングカート - GiftPalette</PageTitle>
+
+<div class="cart-container">
+    <div class="page-header">
+        <h1 class="page-title">🛒 ショッピングカート</h1>
+    </div>
+
+    @if (loading)
+    {
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>カートを読み込み中...</p>
+        </div>
+    }
+    else if (currentCart.Items.Count == 0)
+    {
+        <div class="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <h3>カートは空です</h3>
+            <p>素敵な商品を見つけに行きましょう！</p>
+            <button class="btn btn-primary" @onclick="GoToProducts">
+                商品一覧を見る
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="cart-content">
+            <div class="cart-items">
+                @foreach (var item in currentCart.Items)
+                {
+                    <div class="cart-item">
+                        <div class="item-image">
+                            <img src="@item.ImageUrl" alt="@item.ProductName" />
+                        </div>
+                        <div class="item-details">
+                            <h4 class="item-name">@item.ProductName</h4>
+                            <div class="item-price">¥@item.Price.ToString("N0")</div>
+                        </div>
+                        <div class="item-quantity">
+                            <button class="qty-btn" @onclick="@(() => UpdateQuantity(item.ProductId, item.Quantity - 1))" disabled="@isUpdating">
+                                −
+                            </button>
+                            <span class="qty-display">@item.Quantity</span>
+                            <button class="qty-btn" @onclick="@(() => UpdateQuantity(item.ProductId, item.Quantity + 1))" disabled="@isUpdating">
+                                ＋
+                            </button>
+                        </div>
+                        <div class="item-total">
+                            ¥@((item.Price * item.Quantity).ToString("N0"))
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-remove" @onclick="@(() => RemoveItem(item.ProductId))" disabled="@isUpdating">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h3>注文サマリー</h3>
+                    <div class="summary-row">
+                        <span>商品数：</span>
+                        <span>@currentCart.TotalItems 個</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>合計金額：</span>
+                        <span>¥@currentCart.TotalAmount.ToString("N0")</span>
+                    </div>
+                    
+                    @if (showCheckout)
+                    {
+                        <div class="checkout-form">
+                            <h4>お客様情報</h4>
+                            <div class="form-group">
+                                <label>お名前：</label>
+                                <input type="text" @bind="customerName" class="form-control" placeholder="田中 花子" />
+                            </div>
+                            <div class="form-group">
+                                <label>メールアドレス：</label>
+                                <input type="email" @bind="customerEmail" class="form-control" placeholder="hanako@example.com" />
+                            </div>
+                            <div class="form-group">
+                                <label>お届け先住所：</label>
+                                <textarea @bind="shippingAddress" class="form-control" rows="3" placeholder="〒123-4567&#10;東京都渋谷区..."></textarea>
+                            </div>
+                            <div class="checkout-actions">
+                                <button class="btn btn-secondary" @onclick="CancelCheckout">
+                                    キャンセル
+                                </button>
+                                <button class="btn btn-primary" @onclick="CompleteOrder" disabled="@(isProcessing || !IsFormValid())">
+                                    @if (isProcessing)
+                                    {
+                                        <span>処理中...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>注文を確定する</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn btn-checkout" @onclick="StartCheckout">
+                            レジに進む
+                        </button>
+                        <button class="btn btn-secondary" @onclick="ClearCart" disabled="@isUpdating">
+                            カートを空にする
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private GiftPalette.Models.Cart currentCart = new();
+    private bool loading = true;
+    private bool isUpdating = false;
+    private bool showCheckout = false;
+    private bool isProcessing = false;
+    
+    private string customerName = "";
+    private string customerEmail = "";
+    private string shippingAddress = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        loading = true;
+        currentCart = await CartService.GetCartAsync();
+        loading = false;
+    }
+
+    private async Task UpdateQuantity(int productId, int newQuantity)
+    {
+        if (newQuantity <= 0)
+        {
+            await RemoveItem(productId);
+            return;
+        }
+
+        isUpdating = true;
+        currentCart = await CartService.UpdateCartItemAsync(productId, newQuantity);
+        isUpdating = false;
+    }
+
+    private async Task RemoveItem(int productId)
+    {
+        isUpdating = true;
+        currentCart = await CartService.RemoveFromCartAsync(productId);
+        isUpdating = false;
+    }
+
+    private async Task ClearCart()
+    {
+        isUpdating = true;
+        await CartService.ClearCartAsync();
+        currentCart = await CartService.GetCartAsync();
+        isUpdating = false;
+    }
+
+    private void GoToProducts()
+    {
+        Navigation.NavigateTo("/products");
+    }
+
+    private void StartCheckout()
+    {
+        showCheckout = true;
+    }
+
+    private void CancelCheckout()
+    {
+        showCheckout = false;
+        customerName = "";
+        customerEmail = "";
+        shippingAddress = "";
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrWhiteSpace(customerName) &&
+               !string.IsNullOrWhiteSpace(customerEmail) &&
+               !string.IsNullOrWhiteSpace(shippingAddress);
+    }
+
+    private async Task CompleteOrder()
+    {
+        if (!IsFormValid()) return;
+
+        isProcessing = true;
+        try
+        {
+            var order = await OrderService.CreateOrderAsync(currentCart, customerName, customerEmail, shippingAddress);
+            await CartService.ClearCartAsync();
+            Navigation.NavigateTo($"/order-confirmation/{order.Id}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error completing order: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}
