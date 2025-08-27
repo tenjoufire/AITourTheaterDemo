@@ -8,7 +8,6 @@ public class AIChatConfiguration
 {
     public string Endpoint { get; set; } = string.Empty;
     public string AgentId { get; set; } = string.Empty;
-    public string ApiKey { get; set; } = string.Empty;
 }
 
 public class AIChatService : IAIChatService
@@ -22,7 +21,7 @@ public class AIChatService : IAIChatService
     {
         _logger = logger;
         _config = configuration.Value;
-        
+
         if (!string.IsNullOrEmpty(_config.Endpoint) && !string.IsNullOrEmpty(_config.AgentId))
         {
             try
@@ -43,30 +42,30 @@ public class AIChatService : IAIChatService
         }
     }
 
-    public Task<string> CreateThreadAsync()
+    public async Task<string> CreateThreadAsync()
     {
         if (_agentsClient == null)
         {
             _logger.LogWarning("Azure AI Foundry Agent Service client not initialized, returning mock thread ID");
-            return Task.FromResult(Guid.NewGuid().ToString());
+            return await Task.FromResult(Guid.NewGuid().ToString());
         }
 
         try
         {
             _logger.LogInformation("Creating new thread with Azure AI Foundry Agent Service");
             // When implemented with actual Azure AI Foundry service:
-            // var thread = await _agentsClient.CreateThreadAsync();
-            // return thread.Value.Id;
-            
+            var thread = await _agentsClient.Threads.CreateThreadAsync();
+            return thread.Value.Id;
+
             // For now, return a mock thread ID until Azure AI service is fully configured
-            var threadId = Guid.NewGuid().ToString();
-            _logger.LogInformation("Created thread ID: {ThreadId}", threadId);
-            return Task.FromResult(threadId);
+            //var threadId = Guid.NewGuid().ToString();
+            //_logger.LogInformation("Created thread ID: {ThreadId}", threadId);
+            //return Task.FromResult(threadId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create thread with Azure AI Foundry Agent Service");
-            return Task.FromResult(Guid.NewGuid().ToString());
+            return $"{Guid.NewGuid().ToString()}"; // Return mock thread ID on failure
         }
     }
 
@@ -81,16 +80,42 @@ public class AIChatService : IAIChatService
         try
         {
             _logger.LogInformation("Sending message to Azure AI Foundry Agent Service - Agent: {AgentId}, Thread: {ThreadId}", _azureAIAgentID, threadId);
-            
-            // When actual Azure AI Foundry service is configured, the implementation will be:
-            // 1. Add message to thread: await _agentsClient.CreateMessageAsync(threadId, MessageRole.User, message);
-            // 2. Create run: var run = await _agentsClient.CreateRunAsync(threadId, _azureAIAgentID);
-            // 3. Poll for completion: await _agentsClient.WaitForRunCompletionAsync(threadId, run.Value.Id);
-            // 4. Get response: var messages = await _agentsClient.GetMessagesAsync(threadId);
-            // 5. Return the assistant's response
-            
-            // For now, return enhanced mock response that simulates the Azure AI Foundry experience
-            return await GenerateEnhancedMockResponseAsync(message);
+            var agentResponse = await _agentsClient.Administration.GetAgentAsync(_azureAIAgentID);
+            var agent = agentResponse.Value;
+
+            //create messages in Thread
+            await _agentsClient.Messages.CreateMessageAsync(threadId, MessageRole.User, message);
+
+            // Get response from the agent
+            var runResponse = await _agentsClient.Runs.CreateRunAsync(threadId, _azureAIAgentID);
+            var run = runResponse.Value;
+
+            while(run.Status==RunStatus.InProgress || run.Status == RunStatus.Queued)
+            {
+                await Task.Delay(500); // Wait before checking status again
+                var updatedRunResponse = await _agentsClient.Runs.GetRunAsync(threadId, run.Id);
+                run = updatedRunResponse.Value;
+            }
+
+            //get messages from responce
+            var messagesResponse = _agentsClient.Messages.GetMessages(threadId, order:ListSortOrder.Descending);
+
+            foreach(var threadMessage in messagesResponse)
+            {
+                if (threadMessage.Role == MessageRole.Agent)
+                {
+                   foreach(var content in threadMessage.ContentItems)
+                   {
+                        if (content is MessageTextContent textContent)
+                        {
+                            _logger.LogInformation("Received response from Azure AI Foundry Agent Service");
+                            return textContent.Text;
+                        }
+                    }
+                }
+            }
+
+            return "申し訳ございません。Azure AI Foundry Agent Serviceからの応答が取得できませんでした。もう一度お試しください。";
         }
         catch (Exception ex)
         {
@@ -103,9 +128,9 @@ public class AIChatService : IAIChatService
     {
         // Simulate Azure AI Foundry processing time
         await Task.Delay(Random.Shared.Next(800, 2000));
-        
+
         var lowerMessage = message.ToLower();
-        
+
         // More sophisticated mock responses that simulate an AI agent trained for gift recommendations
         if (lowerMessage.Contains("こんにちは") || lowerMessage.Contains("はじめまして") || lowerMessage.Contains("初めて"))
         {
