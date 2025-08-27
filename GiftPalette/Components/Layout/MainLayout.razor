@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using GiftPalette.Components.Shared
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -14,6 +15,9 @@
             @Body
         </article>
     </main>
+
+    <!-- Chat Overlay Component -->
+    <ChatOverlay @rendermode="InteractiveServer" />
 </div>
 
 <div id="blazor-error-ui">
