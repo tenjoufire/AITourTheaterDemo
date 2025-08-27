@@ -16,13 +16,8 @@
         </article>
     </main>
 
-    <!-- Floating Chat Button -->
-    <button class="floating-chat-btn @(isChatVisible ? "hidden" : "")" @onclick="OpenChat">
-        💬 エージェントに相談する
-    </button>
-
-    <!-- Chat Component -->
-    <ChatComponent IsVisible="isChatVisible" OnClose="CloseChat" @rendermode="InteractiveServer" />
+    <!-- Chat Overlay Component -->
+    <ChatOverlay @rendermode="InteractiveServer" />
 </div>
 
 <div id="blazor-error-ui">
@@ -30,17 +25,3 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-
-@code {
-    private bool isChatVisible = false;
-
-    private void OpenChat()
-    {
-        isChatVisible = true;
-    }
-
-    private void CloseChat()
-    {
-        isChatVisible = false;
-    }
-}

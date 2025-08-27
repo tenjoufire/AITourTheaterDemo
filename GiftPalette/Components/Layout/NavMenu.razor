@@ -1,4 +1,7 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@using GiftPalette.Services
+@inject ChatStateService ChatStateService
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">💝 GiftPalette</a>
     </div>
@@ -31,6 +34,18 @@
                 <span class="bi bi-clock-history-nav-menu" aria-hidden="true"></span> 注文履歴
             </NavLink>
         </div>
+
+        <div class="nav-item px-3">
+            <button class="nav-link chat-button" @onclick="OpenChat">
+                <span class="bi bi-chat-fill-nav-menu" aria-hidden="true"></span> AIチャット
+            </button>
+        </div>
     </nav>
 </div>
 
+@code {
+    private void OpenChat()
+    {
+        ChatStateService.ShowChat();
+    }
+}
