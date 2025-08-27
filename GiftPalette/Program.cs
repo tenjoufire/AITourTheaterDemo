@@ -15,6 +15,11 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddSingleton<IOrderService, OrderService>();
 
+// Add AI Chat Service
+builder.Services.Configure<AIChatConfiguration>(
+    builder.Configuration.GetSection("AIChatConfiguration"));
+builder.Services.AddScoped<IAIChatService, AIChatService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

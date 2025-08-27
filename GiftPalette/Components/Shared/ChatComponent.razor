@@ -1,0 +1,154 @@
+@using GiftPalette.Services
+@inject IAIChatService ChatService
+@inject IJSRuntime JSRuntime
+
+<div class="chat-overlay @(_isVisible ? "visible" : "")">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h3>💬 AIアシスタント</h3>
+            <button class="chat-close-btn" @onclick="CloseChat">✕</button>
+        </div>
+        
+        <div class="chat-messages" @ref="messagesContainer">
+            @if (messages.Count == 0)
+            {
+                <div class="welcome-message">
+                    <p>こんにちは！ギフト選びのお手伝いをします。</p>
+                    <p>何かご質問はありますか？</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var msg in messages)
+                {
+                    <div class="message @(msg.IsUser ? "user" : "ai")">
+                        <div class="message-content">
+                            @msg.Content
+                        </div>
+                        <div class="message-time">
+                            @msg.Timestamp.ToString("HH:mm")
+                        </div>
+                    </div>
+                }
+            }
+            
+            @if (isLoading)
+            {
+                <div class="message ai">
+                    <div class="message-content typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="chat-input">
+            <input @bind="currentMessage" @onkeypress="OnKeyPress" 
+                   placeholder="メッセージを入力してください..." 
+                   disabled="@isLoading" />
+            <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
+                送信
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private bool _isVisible => IsVisible;
+    private string currentMessage = "";
+    private bool isLoading = false;
+    private string threadId = "";
+    private ElementReference messagesContainer;
+    
+    private List<ChatMessage> messages = new();
+
+    public class ChatMessage
+    {
+        public string Content { get; set; } = "";
+        public bool IsUser { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        threadId = await ChatService.CreateThreadAsync();
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !isLoading && !string.IsNullOrWhiteSpace(currentMessage))
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage) || isLoading)
+            return;
+
+        var userMessage = currentMessage.Trim();
+        currentMessage = "";
+        
+        // Add user message
+        messages.Add(new ChatMessage 
+        { 
+            Content = userMessage, 
+            IsUser = true 
+        });
+        
+        isLoading = true;
+        StateHasChanged();
+        await ScrollToBottom();
+
+        try
+        {
+            // Send to AI service
+            var response = await ChatService.SendMessageAsync(userMessage, threadId);
+            
+            // Add AI response
+            messages.Add(new ChatMessage 
+            { 
+                Content = response, 
+                IsUser = false 
+            });
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new ChatMessage 
+            { 
+                Content = "申し訳ございません。エラーが発生しました。", 
+                IsUser = false 
+            });
+            Console.WriteLine($"Chat error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task CloseChat()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollToBottom", messagesContainer);
+        }
+        catch (Exception)
+        {
+            // Ignore JS errors - may not be available during prerendering
+        }
+    }
+}
