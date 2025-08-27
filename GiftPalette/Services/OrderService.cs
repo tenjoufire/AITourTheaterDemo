@@ -21,16 +21,16 @@ public class OrderService : IOrderService
 
     private void InitializeSampleData()
     {
-        // ƒTƒ“ƒvƒ‹’•¶ƒf[ƒ^‚ğ‰Šú‰» - InventoryService‚ÌÀÛ‚Ì¤•i‚ÉŠî‚Ã‚­
+        // ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - InventoryServiceï¿½Ìï¿½ï¿½Û‚Ìï¿½ï¿½iï¿½ÉŠï¿½Ã‚ï¿½
         var sampleOrders = new List<Order>
         {
             new Order
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-10):yyyyMMdd}0001",
-                CustomerName = "“c’† ‰Ôq",
+                CustomerName = "ï¿½cï¿½ï¿½ ï¿½Ôq",
                 CustomerEmail = "hanako.tanaka@example.com",
-                ShippingAddress = "§150-0001\n“Œ‹“sa’J‹æ_‹{‘O1-1-1\nƒAƒp[ƒgƒƒ“ƒg101",
+                ShippingAddress = "ï¿½ï¿½150-0001\nï¿½ï¿½ï¿½ï¿½ï¿½sï¿½aï¿½Jï¿½ï¿½_ï¿½{ï¿½O1-1-1\nï¿½Aï¿½pï¿½[ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½g101",
                 TotalAmount = 8380,
                 Status = OrderStatus.Delivered,
                 CreatedAt = DateTime.UtcNow.AddDays(-10),
@@ -40,7 +40,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 3,
-                        ProductName = "ƒAƒƒ}ƒLƒƒƒ“ƒhƒ‹ƒZƒbƒg",
+                        ProductName = "ï¿½Aï¿½ï¿½ï¿½}ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Zï¿½bï¿½g",
                         Price = 3500,
                         Quantity = 1,
                         ImageUrl = "/images/003.png"
@@ -48,7 +48,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 4,
-                        ProductName = "‰Ô•¿ƒnƒ“ƒhƒNƒŠ[ƒ€ƒZƒbƒg",
+                        ProductName = "ï¿½Ô•ï¿½ï¿½nï¿½ï¿½ï¿½hï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Zï¿½bï¿½g",
                         Price = 2400,
                         Quantity = 2,
                         ImageUrl = "/images/004.png"
@@ -59,9 +59,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-5):yyyyMMdd}0002",
-                CustomerName = "²“¡ ‘¾˜Y",
+                CustomerName = "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Y",
                 CustomerEmail = "taro.sato@example.com",
-                ShippingAddress = "§530-0001\n‘åã•{‘åãs–k‹æ”~“c1-1-1\nƒ}ƒ“ƒVƒ‡ƒ“202",
+                ShippingAddress = "ï¿½ï¿½530-0001\nï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½sï¿½kï¿½ï¿½~ï¿½c1-1-1\nï¿½}ï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½ï¿½202",
                 TotalAmount = 17000,
                 Status = OrderStatus.Shipped,
                 CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -70,7 +70,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 10,
-                        ProductName = "‘½‹@”\ƒXƒ}[ƒgƒEƒHƒbƒ`",
+                        ProductName = "ã‚¹ãƒãƒ¼ãƒˆã‚¦ã‚©ãƒƒãƒ",
                         Price = 15800,
                         Quantity = 1,
                         ImageUrl = "/images/010.png"
@@ -78,7 +78,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 34,
-                        ProductName = "ƒXƒ}[ƒgƒtƒHƒ“ƒXƒ^ƒ“ƒh",
+                        ProductName = "ï¿½Xï¿½}ï¿½[ï¿½gï¿½tï¿½Hï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½h",
                         Price = 1800,
                         Quantity = 1,
                         ImageUrl = "/images/034.png"
@@ -89,9 +89,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-2):yyyyMMdd}0003",
-                CustomerName = "R“c ”üç",
+                CustomerName = "ï¿½Rï¿½c ï¿½ï¿½ï¿½ï¿½",
                 CustomerEmail = "misaki.yamada@example.com",
-                ShippingAddress = "§220-0001\n_“ŞìŒ§‰¡•ls¼‹æ‚İ‚È‚Æ‚İ‚ç‚¢1-1-1\nƒ^ƒ[1001",
+                ShippingAddress = "ï¿½ï¿½220-0001\nï¿½_ï¿½ŞìŒ§ï¿½ï¿½ï¿½lï¿½sï¿½ï¿½ï¿½ï¿½İ‚È‚Æ‚İ‚ç‚¢1-1-1\nï¿½^ï¿½ï¿½ï¿½[1001",
                 TotalAmount = 8800,
                 Status = OrderStatus.Processing,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
@@ -100,7 +100,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 24,
-                        ProductName = "ƒAƒƒ}“ü—ÜƒZƒbƒg",
+                        ProductName = "ï¿½Aï¿½ï¿½ï¿½}ï¿½ï¿½ï¿½ï¿½ï¿½ÜƒZï¿½bï¿½g",
                         Price = 2400,
                         Quantity = 1,
                         ImageUrl = "/images/024.png"
@@ -108,7 +108,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 41,
-                        ProductName = "ƒoƒXƒ[ƒu",
+                        ProductName = "ï¿½oï¿½Xï¿½ï¿½ï¿½[ï¿½u",
                         Price = 6200,
                         Quantity = 1,
                         ImageUrl = "/images/041.png"
@@ -116,7 +116,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 6,
-                        ProductName = "ƒ†ƒjƒR[ƒ“ƒXƒŠƒbƒp",
+                        ProductName = "ï¿½ï¿½ï¿½jï¿½Rï¿½[ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½bï¿½p",
                         Price = 2200,
                         Quantity = 1,
                         ImageUrl = "/images/006.png"
@@ -127,9 +127,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-1):yyyyMMdd}0004",
-                CustomerName = "—é–Ø Œ’ˆê",
+                CustomerName = "ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
                 CustomerEmail = "kenichi.suzuki@example.com",
-                ShippingAddress = "§450-0001\nˆ¤’mŒ§–¼ŒÃ‰®s’†‘º‹æ–¼‰w1-1-1\nƒrƒ‹501",
+                ShippingAddress = "ï¿½ï¿½450-0001\nï¿½ï¿½ï¿½mï¿½ï¿½ï¿½ï¿½ï¿½Ã‰ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½æ–¼ï¿½w1-1-1\nï¿½rï¿½ï¿½501",
                 TotalAmount = 17300,
                 Status = OrderStatus.Pending,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
@@ -138,7 +138,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 9,
-                        ProductName = "ƒŒƒU[ƒrƒWƒlƒXè’ ",
+                        ProductName = "ï¿½ï¿½ï¿½Uï¿½[ï¿½rï¿½Wï¿½lï¿½Xï¿½è’ ",
                         Price = 8500,
                         Quantity = 1,
                         ImageUrl = "/images/009.png"
@@ -146,7 +146,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 21,
-                        ProductName = "ƒƒ“ƒYƒVƒ‹ƒo[ƒlƒbƒNƒŒƒX",
+                        ProductName = "ï¿½ï¿½ï¿½ï¿½ï¿½Yï¿½Vï¿½ï¿½ï¿½oï¿½[ï¿½lï¿½bï¿½Nï¿½ï¿½ï¿½X",
                         Price = 9800,
                         Quantity = 1,
                         ImageUrl = "/images/021.png"
