@@ -28,9 +28,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-10):yyyyMMdd}0001",
-                CustomerName = "�c�� �Ԏq",
+                CustomerName = "田中 花子",
                 CustomerEmail = "hanako.tanaka@example.com",
-                ShippingAddress = "��150-0001\n�����s�a�J��_�{�O1-1-1\n�A�p�[�g�����g101",
+                ShippingAddress = "〒150-0001\n東京都渋谷区神宮前1-1-1\nアパートメント101",
                 TotalAmount = 8380,
                 Status = OrderStatus.Delivered,
                 CreatedAt = DateTime.UtcNow.AddDays(-10),
@@ -40,7 +40,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 3,
-                        ProductName = "�A���}�L�����h���Z�b�g",
+                        ProductName = "アロマキャンドルセット",
                         Price = 3500,
                         Quantity = 1,
                         ImageUrl = "/images/003.png"
@@ -48,7 +48,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 4,
-                        ProductName = "�ԕ��n���h�N���[���Z�b�g",
+                        ProductName = "花柄ハンドクリームセット",
                         Price = 2400,
                         Quantity = 2,
                         ImageUrl = "/images/004.png"
@@ -59,9 +59,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-5):yyyyMMdd}0002",
-                CustomerName = "���� ���Y",
+                CustomerName = "佐藤 太郎",
                 CustomerEmail = "taro.sato@example.com",
-                ShippingAddress = "��530-0001\n���{���s�k��~�c1-1-1\n�}���V����202",
+                ShippingAddress = "〒530-0001\n大阪府大阪市北区梅田1-1-1\nマンション202",
                 TotalAmount = 17000,
                 Status = OrderStatus.Shipped,
                 CreatedAt = DateTime.UtcNow.AddDays(-5),
@@ -70,7 +70,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 10,
-                        ProductName = "スマートウォッチ",
+                        ProductName = "多機能スマートウォッチ",
                         Price = 15800,
                         Quantity = 1,
                         ImageUrl = "/images/010.png"
@@ -78,7 +78,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 34,
-                        ProductName = "�X�}�[�g�t�H���X�^���h",
+                        ProductName = "スマートフォンスタンド",
                         Price = 1800,
                         Quantity = 1,
                         ImageUrl = "/images/034.png"
@@ -89,9 +89,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-2):yyyyMMdd}0003",
-                CustomerName = "�R�c ����",
+                CustomerName = "山田 美咲",
                 CustomerEmail = "misaki.yamada@example.com",
-                ShippingAddress = "��220-0001\n�_�ސ쌧���l�s����݂ȂƂ݂炢1-1-1\n�^���[1001",
+                ShippingAddress = "〒220-0001\n神奈川県横浜市西区みなとみらい1-1-1\nタワー1001",
                 TotalAmount = 8800,
                 Status = OrderStatus.Processing,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
@@ -100,7 +100,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 24,
-                        ProductName = "�A���}�����܃Z�b�g",
+                        ProductName = "アロマ入浴剤セット",
                         Price = 2400,
                         Quantity = 1,
                         ImageUrl = "/images/024.png"
@@ -108,7 +108,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 41,
-                        ProductName = "�o�X���[�u",
+                        ProductName = "バスローブ",
                         Price = 6200,
                         Quantity = 1,
                         ImageUrl = "/images/041.png"
@@ -116,7 +116,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 6,
-                        ProductName = "���j�R�[���X���b�p",
+                        ProductName = "ユニコーンスリッパ",
                         Price = 2200,
                         Quantity = 1,
                         ImageUrl = "/images/006.png"
@@ -127,9 +127,9 @@ public class OrderService : IOrderService
             {
                 Id = _nextOrderId++,
                 OrderNumber = $"GP{DateTime.Now.AddDays(-1):yyyyMMdd}0004",
-                CustomerName = "��� ����",
+                CustomerName = "鈴木 健一",
                 CustomerEmail = "kenichi.suzuki@example.com",
-                ShippingAddress = "��450-0001\n���m�����É��s�����於�w1-1-1\n�r��501",
+                ShippingAddress = "〒450-0001\n愛知県名古屋市中村区名駅1-1-1\nビル501",
                 TotalAmount = 17300,
                 Status = OrderStatus.Pending,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
@@ -138,7 +138,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 9,
-                        ProductName = "���U�[�r�W�l�X�蒠",
+                        ProductName = "レザービジネス手帳",
                         Price = 8500,
                         Quantity = 1,
                         ImageUrl = "/images/009.png"
@@ -146,7 +146,7 @@ public class OrderService : IOrderService
                     new OrderItem
                     {
                         ProductId = 21,
-                        ProductName = "�����Y�V���o�[�l�b�N���X",
+                        ProductName = "メンズシルバーネックレス",
                         Price = 9800,
                         Quantity = 1,
                         ImageUrl = "/images/021.png"

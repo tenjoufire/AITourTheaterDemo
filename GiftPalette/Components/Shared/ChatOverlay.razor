@@ -1,0 +1,56 @@
+@using GiftPalette.Services
+@inject ChatStateService ChatStateService
+@implements IDisposable
+
+<div class="chat-overlay @(IsVisible ? "visible" : "")">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h3>?? AIアシスタント</h3>
+            <button class="chat-close-btn" @onclick="HideChat">?</button>
+        </div>
+        
+        <!-- Chat content will be rendered here -->
+        <ChatComponent IsVisible="IsVisible" OnClose="HideChat" @rendermode="InteractiveServer" />
+    </div>
+    
+    <!-- Floating Chat Button -->
+    <button class="floating-chat-btn @(IsVisible ? "hidden" : "")" @onclick="ShowChat">
+        ?? エージェントに相談する
+    </button>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ChatStateService.ChatVisibilityChanged += OnChatStateChanged;
+        IsVisible = ChatStateService.IsChatVisible;
+    }
+
+    private async void OnChatStateChanged(bool isVisible)
+    {
+        if (IsVisible != isVisible)
+        {
+            IsVisible = isVisible;
+            await IsVisibleChanged.InvokeAsync(IsVisible);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void ShowChat()
+    {
+        ChatStateService.ShowChat();
+    }
+
+    private void HideChat()
+    {
+        ChatStateService.HideChat();
+    }
+
+    public void Dispose()
+    {
+        ChatStateService.ChatVisibilityChanged -= OnChatStateChanged;
+    }
+}

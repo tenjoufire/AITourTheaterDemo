@@ -2,64 +2,57 @@
 @inject IAIChatService ChatService
 @inject IJSRuntime JSRuntime
 
-<div class="chat-overlay @(_isVisible ? "visible" : "")">
-    <div class="chat-container">
-        <div class="chat-header">
-            <h3>💬 AIアシスタント</h3>
-            <button class="chat-close-btn" @onclick="CloseChat">✕</button>
-        </div>
-        
-        <div class="chat-messages" @ref="messagesContainer">
-            @if (messages.Count == 0)
+@if (IsVisible)
+{
+    <div class="chat-messages" @ref="messagesContainer">
+        @if (messages.Count == 0)
+        {
+            <div class="welcome-message">
+                <p>こんにちは！ギフト選びのお手伝いをします。</p>
+                <p>何かご質問はありますか？</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in messages)
             {
-                <div class="welcome-message">
-                    <p>こんにちは！ギフト選びのお手伝いをします。</p>
-                    <p>何かご質問はありますか？</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var msg in messages)
-                {
-                    <div class="message @(msg.IsUser ? "user" : "ai")">
-                        <div class="message-content">
-                            @msg.Content
-                        </div>
-                        <div class="message-time">
-                            @msg.Timestamp.ToString("HH:mm")
-                        </div>
+                <div class="message @(msg.IsUser ? "user" : "ai")">
+                    <div class="message-content">
+                        @msg.Content
                     </div>
-                }
-            }
-            
-            @if (isLoading)
-            {
-                <div class="message ai">
-                    <div class="message-content typing">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                    <div class="message-time">
+                        @msg.Timestamp.ToString("HH:mm")
                     </div>
                 </div>
             }
-        </div>
+        }
         
-        <div class="chat-input">
-            <input @bind="currentMessage" @onkeypress="OnKeyPress" 
-                   placeholder="メッセージを入力してください..." 
-                   disabled="@isLoading" />
-            <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
-                送信
-            </button>
-        </div>
+        @if (isLoading)
+        {
+            <div class="message ai">
+                <div class="message-content typing">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        }
     </div>
-</div>
+    
+    <div class="chat-input">
+        <input @bind="currentMessage" @onkeypress="OnKeyPress" 
+               placeholder="メッセージを入力してください..." 
+               disabled="@isLoading" />
+        <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
+            送信
+        </button>
+    </div>
+}
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private bool _isVisible => IsVisible;
     private string currentMessage = "";
     private bool isLoading = false;
     private string threadId = "";
@@ -133,11 +126,6 @@
             StateHasChanged();
             await ScrollToBottom();
         }
-    }
-
-    private async Task CloseChat()
-    {
-        await OnClose.InvokeAsync();
     }
 
     private async Task ScrollToBottom()
