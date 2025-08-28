@@ -417,3 +417,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /GiftPalette/appsettings.Development.json
+/GiftPalette.API/Properties/ServiceDependencies/webapp-giftpalette-api - Zip Deploy/profile.arm.json
