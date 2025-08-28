@@ -1,5 +1,6 @@
 using GiftPalette.Components;
 using GiftPalette.Services;
+using GiftPalette.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,10 @@ builder.Services.AddRazorComponents()
 
 // Add HttpClient for API calls
 builder.Services.AddHttpClient();
+
+// Configure API settings
+builder.Services.Configure<ApiConfiguration>(
+    builder.Configuration.GetSection("ApiConfiguration"));
 
 // Add application services
 builder.Services.AddScoped<IProductService, ProductService>();
