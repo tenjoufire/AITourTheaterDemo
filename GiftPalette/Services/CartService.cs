@@ -1,5 +1,4 @@
 using GiftPalette.Models;
-using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 
@@ -19,14 +18,12 @@ public class CartService : ICartService
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly string _baseUrl;
     
     public string CartId { get; }
 
-    public CartService(HttpClient httpClient, IOptions<ApiConfiguration> apiConfig)
+    public CartService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _baseUrl = apiConfig.Value.BaseUrl;
         CartId = GetOrCreateCartId();
         _jsonOptions = new JsonSerializerOptions
         {
@@ -44,7 +41,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/api/cart/{CartId}");
+            var response = await _httpClient.GetAsync($"http://localhost:5062/api/cart/{CartId}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -69,7 +66,7 @@ public class CartService : ICartService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            var response = await _httpClient.PostAsync($"{_baseUrl}/api/cart/{CartId}/add", content);
+            var response = await _httpClient.PostAsync($"http://localhost:5062/api/cart/{CartId}/add", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -94,7 +91,7 @@ public class CartService : ICartService
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            var response = await _httpClient.PutAsync($"{_baseUrl}/api/cart/{CartId}/update", content);
+            var response = await _httpClient.PutAsync($"http://localhost:5062/api/cart/{CartId}/update", content);
             
             if (response.IsSuccessStatusCode)
             {
@@ -115,7 +112,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/cart/{CartId}/remove/{productId}");
+            var response = await _httpClient.DeleteAsync($"http://localhost:5062/api/cart/{CartId}/remove/{productId}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -136,7 +133,7 @@ public class CartService : ICartService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/cart/{CartId}/clear");
+            var response = await _httpClient.DeleteAsync($"http://localhost:5062/api/cart/{CartId}/clear");
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

@@ -1,5 +1,4 @@
 using GiftPalette.Models;
-using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace GiftPalette.Services;
@@ -15,12 +14,10 @@ public class ProductService : IProductService
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly string _baseUrl;
 
-    public ProductService(HttpClient httpClient, IOptions<ApiConfiguration> apiConfig)
+    public ProductService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _baseUrl = apiConfig.Value.BaseUrl;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -31,7 +28,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/api/products");
+            var response = await _httpClient.GetAsync("http://localhost:5062/api/products");
             
             if (response.IsSuccessStatusCode)
             {
@@ -52,7 +49,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/api/products/{id}");
+            var response = await _httpClient.GetAsync($"http://localhost:5062/api/products/{id}");
             
             if (response.IsSuccessStatusCode)
             {
@@ -72,7 +69,7 @@ public class ProductService : IProductService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{_baseUrl}/api/products/category/{category}");
+            var response = await _httpClient.GetAsync($"http://localhost:5062/api/products/category/{category}");
             
             if (response.IsSuccessStatusCode)
             {
