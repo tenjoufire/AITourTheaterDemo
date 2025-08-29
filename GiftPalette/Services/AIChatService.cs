@@ -27,7 +27,11 @@ public class AIChatService : IAIChatService
             try
             {
                 // Initialize with DefaultAzureCredential for Azure AI Foundry service
+#if DEBUG
+                _agentsClient = new PersistentAgentsClient(_config.Endpoint, new AzureCliCredential());
+#else
                 _agentsClient = new PersistentAgentsClient(_config.Endpoint, new DefaultAzureCredential());
+#endif
                 _azureAIAgentID = _config.AgentId;
                 _logger.LogInformation("Azure AI Foundry Agent Service initialized successfully with endpoint: {Endpoint}, AgentId: {AgentId}", _config.Endpoint, _config.AgentId);
             }
@@ -56,11 +60,6 @@ public class AIChatService : IAIChatService
             // When implemented with actual Azure AI Foundry service:
             var thread = await _agentsClient.Threads.CreateThreadAsync();
             return thread.Value.Id;
-
-            // For now, return a mock thread ID until Azure AI service is fully configured
-            //var threadId = Guid.NewGuid().ToString();
-            //_logger.LogInformation("Created thread ID: {ThreadId}", threadId);
-            //return Task.FromResult(threadId);
         }
         catch (Exception ex)
         {
@@ -90,7 +89,7 @@ public class AIChatService : IAIChatService
             var runResponse = await _agentsClient.Runs.CreateRunAsync(threadId, _azureAIAgentID);
             var run = runResponse.Value;
 
-            while(run.Status==RunStatus.InProgress || run.Status == RunStatus.Queued)
+            while (run.Status == RunStatus.InProgress || run.Status == RunStatus.Queued)
             {
                 await Task.Delay(500); // Wait before checking status again
                 var updatedRunResponse = await _agentsClient.Runs.GetRunAsync(threadId, run.Id);
@@ -98,14 +97,14 @@ public class AIChatService : IAIChatService
             }
 
             //get messages from responce
-            var messagesResponse = _agentsClient.Messages.GetMessages(threadId, order:ListSortOrder.Descending);
+            var messagesResponse = _agentsClient.Messages.GetMessages(threadId, order: ListSortOrder.Descending);
 
-            foreach(var threadMessage in messagesResponse)
+            foreach (var threadMessage in messagesResponse)
             {
                 if (threadMessage.Role == MessageRole.Agent)
                 {
-                   foreach(var content in threadMessage.ContentItems)
-                   {
+                    foreach (var content in threadMessage.ContentItems)
+                    {
                         if (content is MessageTextContent textContent)
                         {
                             _logger.LogInformation("Received response from Azure AI Foundry Agent Service");

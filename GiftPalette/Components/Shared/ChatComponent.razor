@@ -74,6 +74,7 @@
     protected override async Task OnInitializedAsync()
     {
         threadId = await ChatService.CreateThreadAsync();
+        Console.WriteLine($"PEKO:Created new chat thread: {threadId}");
     }
 
     private async Task OnKeyPress(KeyboardEventArgs e)

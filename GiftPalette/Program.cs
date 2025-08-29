@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IOrderService, OrderService>();
 // Add AI Chat Service
 builder.Services.Configure<AIChatConfiguration>(
     builder.Configuration.GetSection("AIChatConfiguration"));
-builder.Services.AddScoped<IAIChatService, AIChatService>();
+builder.Services.AddSingleton<IAIChatService, AIChatService>();
 
 // Add Chat State Service (Singleton for global state management)
 builder.Services.AddSingleton<ChatStateService>();
