@@ -15,9 +15,32 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddSingleton<IOrderService, OrderService>();
 
-// Add AI Chat Service
-builder.Services.Configure<AIChatConfiguration>(
-    builder.Configuration.GetSection("AIChatConfiguration"));
+// Configure AIChatConfiguration with environment variable priority
+builder.Services.Configure<AIChatConfiguration>(config =>
+{
+    // First try to get from environment variables (higher priority)
+    var endpoint = Environment.GetEnvironmentVariable("AIChatConfiguration__Endpoint") 
+                  ?? builder.Configuration["AIChatConfiguration:Endpoint"] 
+                  ?? string.Empty;
+    
+    var agentId = Environment.GetEnvironmentVariable("AIChatConfiguration__AgentId") 
+                 ?? builder.Configuration["AIChatConfiguration:AgentId"] 
+                 ?? string.Empty;
+    
+    config.Endpoint = endpoint;
+    config.AgentId = agentId;
+});
+
+// Configure ApiConfiguration with environment variable priority
+builder.Services.Configure<ApiConfiguration>(config =>
+{
+    var baseUrl = Environment.GetEnvironmentVariable("ApiConfiguration__BaseUrl") 
+                 ?? builder.Configuration["ApiConfiguration:BaseUrl"] 
+                 ?? "http://localhost:5062";
+    
+    config.BaseUrl = baseUrl;
+});
+
 builder.Services.AddSingleton<IAIChatService, AIChatService>();
 
 // Add Chat State Service (Singleton for global state management)
