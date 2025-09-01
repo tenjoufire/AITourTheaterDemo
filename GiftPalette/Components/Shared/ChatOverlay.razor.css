@@ -14,7 +14,8 @@
     background: #fff;
     box-shadow: -8px 0 32px rgba(255, 105, 180, 0.2);
     transition: right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 1000;
+    /* Increased to ensure chat panel is above any app UI (e.g., error UI, nav, modals) */
+    z-index: 2000;
     border-left: 2px solid rgba(255, 105, 180, 0.1);
     pointer-events: auto;
     box-sizing: border-box; /* include border in 25vw calc */
@@ -22,6 +23,11 @@
 
 .chat-panel.visible {
     right: 0;
+}
+
+/* Ensure the floating button sits above page content but below the panel */
+.floating-chat-btn {
+    z-index: 1500;
 }
 
 /* Mobile: show as a smaller bottom sheet */
