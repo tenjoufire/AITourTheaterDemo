@@ -1,7 +1,10 @@
 ﻿@using GiftPalette.Components.Shared
+@using GiftPalette.Services
+@inject ChatStateService ChatStateService
 @inherits LayoutComponentBase
+@implements IDisposable
 
-<div class="page">
+<div class="page @(isChatVisible ? "chat-open" : "")">
     <div class="sidebar">
         <NavMenu />
     </div>
@@ -25,3 +28,27 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool isChatVisible = false;
+
+    protected override void OnInitialized()
+    {
+        ChatStateService.ChatVisibilityChanged += OnChatStateChanged;
+        isChatVisible = ChatStateService.IsChatVisible;
+    }
+
+    private async void OnChatStateChanged(bool isVisible)
+    {
+        if (isChatVisible != isVisible)
+        {
+            isChatVisible = isVisible;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        ChatStateService.ChatVisibilityChanged -= OnChatStateChanged;
+    }
+}

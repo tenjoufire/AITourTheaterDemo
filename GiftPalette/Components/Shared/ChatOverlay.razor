@@ -2,22 +2,15 @@
 @inject ChatStateService ChatStateService
 @implements IDisposable
 
-<div class="chat-overlay @(IsVisible ? "visible" : "")">
-    <div class="chat-container">
-        <div class="chat-header">
-            <h3>💬 AIアシスタント</h3>
-            <button class="chat-close-btn" @onclick="HideChat">×</button>
-        </div>
-        
-        <!-- Chat content will be rendered here -->
-        <ChatComponent IsVisible="IsVisible" OnClose="HideChat" @rendermode="InteractiveServer" />
-    </div>
-    
-    <!-- Floating Chat Button -->
-    <button class="floating-chat-btn @(IsVisible ? "hidden" : "")" @onclick="ShowChat">
-        💬 エージェントに相談する
-    </button>
+<!-- Chat Panel (no overlay, just side panel) -->
+<div class="chat-panel @(IsVisible ? "visible" : "")">
+    <ChatComponent IsVisible="IsVisible" OnClose="HideChat" @rendermode="InteractiveServer" />
 </div>
+
+<!-- Floating Chat Button -->
+<button class="floating-chat-btn @(IsVisible ? "hidden" : "")" @onclick="ShowChat">
+    💬 エージェントに相談する
+</button>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

@@ -4,52 +4,64 @@
 
 @if (IsVisible)
 {
-    <div class="chat-messages" @ref="messagesContainer">
-        @if (messages.Count == 0)
-        {
-            <div class="welcome-message">
-                <p><strong>🤖 Azure AI Foundry Agent Service</strong></p>
-                <p>こんにちは！GiftPaletteのAIアシスタントです。</p>
-                <p>ギフト選びのご相談やご質問をお気軽にどうぞ！</p>
-                <div class="welcome-examples">
-                    <small>例：「20代女性へのプレゼントを教えて」「予算5000円でおすすめは？」</small>
-                </div>
+    <div class="chat-panel-inner">
+        <div class="chat-header">
+            <h3>💬 AIアシスタント</h3>
+            <div class="chat-header-actions">
+                <button class="new-chat-btn" @onclick="StartNewConversation" title="新しい会話を始める">
+                    🔄 新規
+                </button>
+                <button class="chat-close-btn" @onclick="OnClose" title="チャットを閉じる">×</button>
             </div>
-        }
-        else
-        {
-            @foreach (var msg in messages)
+        </div>
+        
+        <div class="chat-messages" @ref="messagesContainer">
+            @if (messages.Count == 0)
             {
-                <div class="message @(msg.IsUser ? "user" : "ai")">
-                    <div class="message-content">
-                        @msg.Content
-                    </div>
-                    <div class="message-time">
-                        @msg.Timestamp.ToString("HH:mm")
+                <div class="welcome-message">
+                    <p><strong>🤖 Azure AI Foundry Agent Service</strong></p>
+                    <p>こんにちは！GiftPaletteのAIアシスタントです。</p>
+                    <p>ギフト選びのご相談やご質問をお気軽にどうぞ！</p>
+                    <div class="welcome-examples">
+                        <small>例：「20代女性へのプレゼントを教えて」「予算5000円でおすすめは？」</small>
                     </div>
                 </div>
             }
-        }
-        
-        @if (isLoading)
-        {
-            <div class="message ai">
-                <div class="message-content typing">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            else
+            {
+                @foreach (var msg in messages)
+                {
+                    <div class="message @(msg.IsUser ? "user" : "ai")">
+                        <div class="message-content">
+                            @msg.Content
+                        </div>
+                        <div class="message-time">
+                            @msg.Timestamp.ToString("HH:mm")
+                        </div>
+                    </div>
+                }
+            }
+            
+            @if (isLoading)
+            {
+                <div class="message ai">
+                    <div class="message-content typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </div>
-            </div>
-        }
-    </div>
-    
-    <div class="chat-input">
-        <input @bind="currentMessage" @onkeypress="OnKeyPress" 
-               placeholder="メッセージを入力してください..." 
-               disabled="@isLoading" />
-        <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
-            送信
-        </button>
+            }
+        </div>
+        
+        <div class="chat-input">
+            <input @bind="currentMessage" @onkeypress="OnKeyPress" 
+                   placeholder="メッセージを入力してください..." 
+                   disabled="@isLoading" />
+            <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
+                送信
+            </button>
+        </div>
     </div>
 }
 
@@ -61,6 +73,8 @@
     private bool isLoading = false;
     private string threadId = "";
     private ElementReference messagesContainer;
+    private bool shouldScrollToBottom = false;
+    private bool previousVisible = false;
     
     private List<ChatMessage> messages = new();
 
@@ -75,6 +89,48 @@
     {
         threadId = await ChatService.CreateThreadAsync();
         Console.WriteLine($"PEKO:Created new chat thread: {threadId}");
+    }
+
+    protected override void OnParametersSet()
+    {
+        // チャットが表示状態に遷移したら次のレンダー後にスクロール
+        if (IsVisible && !previousVisible)
+        {
+            shouldScrollToBottom = true;
+        }
+        previousVisible = IsVisible;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (shouldScrollToBottom)
+        {
+            shouldScrollToBottom = false;
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task StartNewConversation()
+    {
+        if (isLoading) return;
+
+        try
+        {
+            // 新しいスレッドを作成
+            threadId = await ChatService.CreateThreadAsync();
+            Console.WriteLine($"PEKO:Started new conversation with thread: {threadId}");
+            
+            // メッセージリストをクリア
+            messages.Clear();
+            currentMessage = "";
+            
+            shouldScrollToBottom = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting new conversation: {ex.Message}");
+        }
     }
 
     private async Task OnKeyPress(KeyboardEventArgs e)
@@ -101,8 +157,8 @@
         });
         
         isLoading = true;
+        shouldScrollToBottom = true;
         StateHasChanged();
-        await ScrollToBottom();
 
         try
         {
@@ -115,6 +171,7 @@
                 Content = response, 
                 IsUser = false 
             });
+            shouldScrollToBottom = true;
         }
         catch (Exception ex)
         {
@@ -123,13 +180,13 @@
                 Content = "申し訳ございません。エラーが発生しました。", 
                 IsUser = false 
             });
+            shouldScrollToBottom = true;
             Console.WriteLine($"Chat error: {ex.Message}");
         }
         finally
         {
             isLoading = false;
             StateHasChanged();
-            await ScrollToBottom();
         }
     }
 
