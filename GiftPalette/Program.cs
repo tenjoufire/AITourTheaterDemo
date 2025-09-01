@@ -41,7 +41,7 @@ builder.Services.Configure<ApiConfiguration>(config =>
     config.BaseUrl = baseUrl;
 });
 
-builder.Services.AddSingleton<IAIChatService, AIChatService>();
+builder.Services.AddScoped<IAIChatService, AIChatService>();
 
 // Add Chat State Service (Singleton for global state management)
 builder.Services.AddSingleton<ChatStateService>();

@@ -1,6 +1,8 @@
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
+using System.Text;
 
 namespace GiftPalette.Services;
 
@@ -16,11 +18,15 @@ public class AIChatService : IAIChatService
     private readonly string? _azureAIAgentID;
     private readonly ILogger<AIChatService> _logger;
     private readonly AIChatConfiguration _config;
+    private readonly HttpClient _httpClient;
+    private readonly string _apiBaseUrl;
 
-    public AIChatService(IOptions<AIChatConfiguration> configuration, ILogger<AIChatService> logger)
+    public AIChatService(IOptions<AIChatConfiguration> configuration, ILogger<AIChatService> logger, IOptions<ApiConfiguration> apiConfig, HttpClient httpClient)
     {
         _logger = logger;
         _config = configuration.Value;
+        _httpClient = httpClient;
+        _apiBaseUrl = apiConfig.Value.BaseUrl;
 
         if (!string.IsNullOrEmpty(_config.Endpoint) && !string.IsNullOrEmpty(_config.AgentId))
         {
@@ -68,12 +74,12 @@ public class AIChatService : IAIChatService
         }
     }
 
-    public async Task<string> SendMessageAsync(string message, string threadId = "")
+    public async Task<string> SendMessageAsync(string message, string threadId = "", string cartId = "")
     {
         if (_agentsClient == null || string.IsNullOrEmpty(_azureAIAgentID))
         {
             _logger.LogWarning("Azure AI Foundry Agent Service client or Agent ID not configured");
-            return await GenerateEnhancedMockResponseAsync(message);
+            return await GenerateEnhancedMockResponseAsync(message, cartId);
         }
 
         try
@@ -123,8 +129,191 @@ public class AIChatService : IAIChatService
         }
     }
 
-    private async Task<string> GenerateEnhancedMockResponseAsync(string message)
+    private async Task<string> AddToCartAsync(string cartId, int productId, int quantity)
     {
+        try
+        {
+            var request = new { ProductId = productId, Quantity = quantity };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/cart/{cartId}/add", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Successfully added product {ProductId} (quantity: {Quantity}) to cart {CartId}", productId, quantity, cartId);
+                return "商品をカートに追加しました。";
+            }
+            else
+            {
+                _logger.LogWarning("Failed to add product to cart. Status: {StatusCode}", response.StatusCode);
+                return "商品の追加に失敗しました。";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding product to cart");
+            return "商品の追加中にエラーが発生しました。";
+        }
+    }
+
+    private async Task<string> GetCartAsync(string cartId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/cart/{cartId}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var cart = JsonSerializer.Deserialize<GiftPalette.Models.Cart>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (cart != null && cart.Items.Count > 0)
+                {
+                    var itemsSummary = string.Join("\n", cart.Items.Select(item => 
+                        $"• {item.ProductName} × {item.Quantity}個 (¥{item.Price:N0} × {item.Quantity} = ¥{(item.Price * item.Quantity):N0})"));
+                    
+                    return $"現在のカート内容:\n{itemsSummary}\n\n合計: {cart.TotalItems}個 ¥{cart.TotalAmount:N0}";
+                }
+                else
+                {
+                    return "カートは空です。";
+                }
+            }
+            else
+            {
+                return "カート情報の取得に失敗しました。";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting cart");
+            return "カート情報の取得中にエラーが発生しました。";
+        }
+    }
+
+    private async Task<string> RemoveFromCartAsync(string cartId, int productId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/cart/{cartId}/remove/{productId}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Successfully removed product {ProductId} from cart {CartId}", productId, cartId);
+                return "商品をカートから削除しました。";
+            }
+            else
+            {
+                return "商品の削除に失敗しました。";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing product from cart");
+            return "商品の削除中にエラーが発生しました。";
+        }
+    }
+
+    private async Task<string> ClearCartAsync(string cartId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/cart/{cartId}/clear");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Successfully cleared cart {CartId}", cartId);
+                return "カートをクリアしました。";
+            }
+            else
+            {
+                return "カートのクリアに失敗しました。";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing cart");
+            return "カートのクリア中にエラーが発生しました。";
+        }
+    }
+
+    private async Task<string> ProcessCartOperationAsync(string message, string cartId)
+    {
+        var lowerMessage = message.ToLower();
+        
+        // Cart operation patterns
+        if ((lowerMessage.Contains("カート") || lowerMessage.Contains("追加")) && !string.IsNullOrEmpty(cartId))
+        {
+            // Pattern: "商品Aを2個カートに追加して"
+            
+            if (lowerMessage.Contains("追加"))
+            {
+                // Extract quantity if mentioned
+                var quantityMatch = System.Text.RegularExpressions.Regex.Match(lowerMessage, @"(\d+)個?");
+                var quantity = quantityMatch.Success ? int.Parse(quantityMatch.Groups[1].Value) : 1;
+                
+                // Map product names to IDs (simplified for demo)
+                var productId = 1; // Default to first product
+                
+                if (lowerMessage.Contains("マグカップ") || lowerMessage.Contains("カップ"))
+                    productId = 1;
+                else if (lowerMessage.Contains("ネックレス") || lowerMessage.Contains("アクセサリー"))
+                    productId = 2;
+                else if (lowerMessage.Contains("キャンドル") || lowerMessage.Contains("アロマ"))
+                    productId = 3;
+                else if (lowerMessage.Contains("ハンドクリーム") || lowerMessage.Contains("クリーム"))
+                    productId = 4;
+                else if (lowerMessage.Contains("ブランケット") || lowerMessage.Contains("毛布"))
+                    productId = 5;
+                
+                var result = await AddToCartAsync(cartId, productId, quantity);
+                var cartStatus = await GetCartAsync(cartId);
+                return $"{result}\n\n{cartStatus}";
+            }
+            
+            if (lowerMessage.Contains("確認") || lowerMessage.Contains("中身") || lowerMessage.Contains("内容"))
+            {
+                return await GetCartAsync(cartId);
+            }
+            
+            if (lowerMessage.Contains("削除") || lowerMessage.Contains("消去"))
+            {
+                // For demo, remove first item or specify product
+                var productId = 1;
+                if (lowerMessage.Contains("ネックレス")) productId = 2;
+                else if (lowerMessage.Contains("キャンドル")) productId = 3;
+                // Add more mappings as needed
+                
+                var result = await RemoveFromCartAsync(cartId, productId);
+                var cartStatus = await GetCartAsync(cartId);
+                return $"{result}\n\n{cartStatus}";
+            }
+            
+            if (lowerMessage.Contains("クリア") || lowerMessage.Contains("空に"))
+            {
+                return await ClearCartAsync(cartId);
+            }
+        }
+        
+        return null!; // No cart operation detected
+    }
+
+    private async Task<string> GenerateEnhancedMockResponseAsync(string message, string cartId = "")
+    {
+        // Check for cart operations first
+        if (!string.IsNullOrEmpty(cartId))
+        {
+            var cartOperation = await ProcessCartOperationAsync(message, cartId);
+            if (cartOperation != null)
+            {
+                return cartOperation;
+            }
+        }
+        
         // Simulate Azure AI Foundry processing time
         await Task.Delay(Random.Shared.Next(800, 2000));
 

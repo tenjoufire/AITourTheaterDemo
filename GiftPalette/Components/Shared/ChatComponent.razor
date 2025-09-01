@@ -1,6 +1,7 @@
 @using GiftPalette.Services
 @using Markdig
 @inject IAIChatService ChatService
+@inject ICartService CartService
 @inject IJSRuntime JSRuntime
 
 @if (IsVisible)
@@ -179,7 +180,7 @@
         try
         {
             // Send to AI service
-            var response = await ChatService.SendMessageAsync(userMessage, threadId);
+            var response = await ChatService.SendMessageAsync(userMessage, threadId, CartService.CartId);
             
             // Add AI response
             messages.Add(new ChatMessage 
