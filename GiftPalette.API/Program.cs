@@ -65,6 +65,15 @@ app.MapPost("/api/inventory/check", async (CheckStockRequest request, IInventory
 .WithName("CheckStock")
 .WithOpenApi();
 
+// Cart ID issue endpoint (demo: fixed cart ID)
+app.MapGet("/api/cart/issue", () =>
+{
+    var issued = new IssueCartIdResponse("demo-cart-001");
+    return Results.Ok(issued);
+})
+.WithName("IssueCartId")
+.WithOpenApi();
+
 // Cart API endpoints
 app.MapGet("/api/cart/{cartId}", async (string cartId, ICartService cartService) =>
 {
@@ -112,3 +121,4 @@ app.Run();
 public record CheckStockRequest(int ProductId, int Quantity);
 public record AddToCartRequest(int ProductId, int Quantity);
 public record UpdateCartRequest(int ProductId, int Quantity);
+public record IssueCartIdResponse(string CartId);
