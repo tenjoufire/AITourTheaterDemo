@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.AI.Agents.Persistent" Version="1.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.15.0" />
+    <PackageReference Include="Markdig" Version="0.34.0" />
   </ItemGroup>
 
 </Project>
