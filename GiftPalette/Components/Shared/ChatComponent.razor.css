@@ -1,19 +1,5 @@
-/* Chat Panel (オーバーレイではなくサイドパネル) */
-.chat-panel {
-    position: fixed;
-    top: 0;
-    right: -340px; /* 以前: -450px */
-    width: 340px;  /* 以前: 450px */
-    height: 100vh;
-    background: white;
-    box-shadow: -8px 0 32px rgba(255, 105, 180, 0.2);
-    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 1000;
-    border-left: 2px solid rgba(255, 105, 180, 0.1);
-    pointer-events: auto;
-}
-
-.chat-panel.visible { right: 0; }
+/* Chat Panel internal layout only (container width is controlled by ChatOverlay) */
+/* Removed .chat-panel sizing to avoid conflicts; width is defined in ChatOverlay.razor.css */
 
 /* 内部を縦方向のflexにして、ヘッダー/本文/入力の3分割 */
 .chat-panel-inner {
@@ -43,7 +29,7 @@
     overscroll-behavior: contain;
 }
 
-/* Floating Chat Button */
+/* Floating Chat Button (not used here due to CSS isolation, kept for reference) */
 .floating-chat-btn {
     position: fixed;
     bottom: 30px;
@@ -249,7 +235,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .chat-panel { width: 100vw; right: -100vw; height: 80vh; }
     .chat-panel-inner { height: 100%; }
     .message { max-width: calc(100% - 20px); }
 }

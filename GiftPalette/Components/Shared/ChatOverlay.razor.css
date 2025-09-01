@@ -1,9 +1,15 @@
-/* Compact chat side panel */
+/* Chat side panel with fixed width of 25% of the viewport */
 .chat-panel {
     position: fixed;
     top: 0;
-    right: -300px; /* compact: 300px */
-    width: 300px;
+    /* Off-canvas by its own width (fallback first, then modern viewport units) */
+    right: -25vw;
+    right: -25svw;
+    right: -25dvw;
+    /* Fixed to 1/4 of the screen (fallback first, then modern viewport units) */
+    width: 25vw;
+    width: 25svw;
+    width: 25dvw;
     height: 100vh;
     background: #fff;
     box-shadow: -8px 0 32px rgba(255, 105, 180, 0.2);
@@ -11,6 +17,7 @@
     z-index: 1000;
     border-left: 2px solid rgba(255, 105, 180, 0.1);
     pointer-events: auto;
+    box-sizing: border-box; /* include border in 25vw calc */
 }
 
 .chat-panel.visible {
