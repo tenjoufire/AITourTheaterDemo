@@ -23,12 +23,12 @@ builder.Services.Configure<AIChatConfiguration>(config =>
                   ?? builder.Configuration["AIChatConfiguration:Endpoint"] 
                   ?? string.Empty;
     
-    var agentId = Environment.GetEnvironmentVariable("AIChatConfiguration__AgentId") 
-                 ?? builder.Configuration["AIChatConfiguration:AgentId"] 
+    var agentName = Environment.GetEnvironmentVariable("AIChatConfiguration__AgentName") 
+                 ?? builder.Configuration["AIChatConfiguration:AgentName"] 
                  ?? string.Empty;
     
     config.Endpoint = endpoint;
-    config.AgentId = agentId;
+    config.AgentName = agentName;
 });
 
 // Configure ApiConfiguration with environment variable priority

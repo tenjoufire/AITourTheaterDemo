@@ -1,39 +1,51 @@
-using Azure.AI.Agents.Persistent;
+using Azure.AI.Projects;
+using Azure.AI.Projects.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.Options;
+using OpenAI.Responses;
+using System.Collections.Concurrent;
+
+#pragma warning disable OPENAI001
 
 namespace GiftPalette.Services;
 
 public class AIChatConfiguration
 {
     public string Endpoint { get; set; } = string.Empty;
-    public string AgentId { get; set; } = string.Empty;
+    public string AgentName { get; set; } = string.Empty;
 }
 
 public class AIChatService : IAIChatService
 {
-    private readonly PersistentAgentsClient? _agentsClient;
-    private readonly string? _azureAIAgentID;
+    private readonly AIProjectClient? _projectClient;
+    private readonly OpenAIResponseClient? _responseClient;
+    private readonly string? _agentName;
     private readonly ILogger<AIChatService> _logger;
     private readonly AIChatConfiguration _config;
+    private readonly ConcurrentDictionary<string, List<ResponseItem>> _conversationHistory = new();
 
     public AIChatService(IOptions<AIChatConfiguration> configuration, ILogger<AIChatService> logger)
     {
         _logger = logger;
         _config = configuration.Value;
 
-        if (!string.IsNullOrEmpty(_config.Endpoint) && !string.IsNullOrEmpty(_config.AgentId))
+        if (!string.IsNullOrEmpty(_config.Endpoint) && !string.IsNullOrEmpty(_config.AgentName))
         {
             try
             {
                 // Initialize with DefaultAzureCredential for Azure AI Foundry service
 #if DEBUG
-                _agentsClient = new PersistentAgentsClient(_config.Endpoint, new AzureCliCredential());
+                _projectClient = new AIProjectClient(endpoint: new Uri(_config.Endpoint), tokenProvider: new AzureCliCredential());
 #else
-                _agentsClient = new PersistentAgentsClient(_config.Endpoint, new DefaultAzureCredential());
+                _projectClient = new AIProjectClient(endpoint: new Uri(_config.Endpoint), tokenProvider: new DefaultAzureCredential());
 #endif
-                _azureAIAgentID = _config.AgentId;
-                _logger.LogInformation("Azure AI Foundry Agent Service initialized successfully with endpoint: {Endpoint}, AgentId: {AgentId}", _config.Endpoint, _config.AgentId);
+                _agentName = _config.AgentName;
+
+                // Get the agent and create a response client
+                AgentRecord agentRecord = _projectClient.Agents.GetAgent(_agentName);
+                _responseClient = _projectClient.OpenAI.GetProjectResponsesClientForAgent(agentRecord);
+
+                _logger.LogInformation("Azure AI Foundry Agent Service initialized successfully with endpoint: {Endpoint}, AgentName: {AgentName}, AgentId: {AgentId}", _config.Endpoint, _config.AgentName, agentRecord.Id);
             }
             catch (Exception ex)
             {
@@ -42,79 +54,61 @@ public class AIChatService : IAIChatService
         }
         else
         {
-            _logger.LogWarning("Azure AI Foundry Agent Service not configured. Missing Endpoint or AgentId. Using mock responses for demonstration.");
+            _logger.LogWarning("Azure AI Foundry Agent Service not configured. Missing Endpoint or AgentName. Using mock responses for demonstration.");
         }
     }
 
     public async Task<string> CreateThreadAsync()
     {
-        if (_agentsClient == null)
-        {
-            _logger.LogWarning("Azure AI Foundry Agent Service client not initialized, returning mock thread ID");
-            return await Task.FromResult(Guid.NewGuid().ToString());
-        }
-
-        try
-        {
-            _logger.LogInformation("Creating new thread with Azure AI Foundry Agent Service");
-            // When implemented with actual Azure AI Foundry service:
-            var thread = await _agentsClient.Threads.CreateThreadAsync();
-            return thread.Value.Id;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create thread with Azure AI Foundry Agent Service");
-            return $"{Guid.NewGuid().ToString()}"; // Return mock thread ID on failure
-        }
+        // Create a new conversation thread by generating a unique ID
+        var threadId = Guid.NewGuid().ToString();
+        _conversationHistory.TryAdd(threadId, new List<ResponseItem>());
+        _logger.LogInformation("Created new conversation thread: {ThreadId}", threadId);
+        return await Task.FromResult(threadId);
     }
 
     public async Task<string> SendMessageAsync(string message, string threadId = "")
     {
-        if (_agentsClient == null || string.IsNullOrEmpty(_azureAIAgentID))
+        if (_responseClient == null || string.IsNullOrEmpty(_agentName))
         {
-            _logger.LogWarning("Azure AI Foundry Agent Service client or Agent ID not configured");
+            _logger.LogWarning("Azure AI Foundry Agent Service client or Agent Name not configured");
             return await GenerateEnhancedMockResponseAsync(message);
         }
 
         try
         {
-            _logger.LogInformation("Sending message to Azure AI Foundry Agent Service - Agent: {AgentId}, Thread: {ThreadId}", _azureAIAgentID, threadId);
-            var agentResponse = await _agentsClient.Administration.GetAgentAsync(_azureAIAgentID);
-            var agent = agentResponse.Value;
+            _logger.LogInformation("Sending message to Azure AI Foundry Agent Service - Agent: {AgentName}, Thread: {ThreadId}", _agentName, threadId);
 
-            //create messages in Thread
-            await _agentsClient.Messages.CreateMessageAsync(threadId, MessageRole.User, message);
-
-            // Get response from the agent
-            var runResponse = await _agentsClient.Runs.CreateRunAsync(threadId, _azureAIAgentID);
-            var run = runResponse.Value;
-
-            while (run.Status == RunStatus.InProgress || run.Status == RunStatus.Queued)
+            // Get or create conversation history for this thread
+            if (!_conversationHistory.TryGetValue(threadId, out var history))
             {
-                await Task.Delay(500); // Wait before checking status again
-                var updatedRunResponse = await _agentsClient.Runs.GetRunAsync(threadId, run.Id);
-                run = updatedRunResponse.Value;
+                history = new List<ResponseItem>();
+                _conversationHistory.TryAdd(threadId, history);
             }
 
-            //get messages from responce
-            var messagesResponse = _agentsClient.Messages.GetMessages(threadId, order: ListSortOrder.Descending);
-
-            foreach (var threadMessage in messagesResponse)
+            // Create response with conversation history using PreviousResponseId if available
+            OpenAIResponse response;
+            if (history.Count > 0)
             {
-                if (threadMessage.Role == MessageRole.Agent)
-                {
-                    foreach (var content in threadMessage.ContentItems)
-                    {
-                        if (content is MessageTextContent textContent)
-                        {
-                            _logger.LogInformation("Received response from Azure AI Foundry Agent Service");
-                            return textContent.Text;
-                        }
-                    }
-                }
+                // Build input items from history for multi-turn conversation
+                var inputItems = new List<ResponseItem>();
+                inputItems.AddRange(history);
+                inputItems.Add(ResponseItem.CreateUserMessageItem(message));
+                
+                response = await _responseClient.CreateResponseAsync(inputItems);
+            }
+            else
+            {
+                response = await _responseClient.CreateResponseAsync(message);
             }
 
-            return "申し訳ございません。Azure AI Foundry Agent Serviceからの応答が取得できませんでした。もう一度お試しください。";
+            // Store input and output items for conversation continuity
+            history.Add(ResponseItem.CreateUserMessageItem(message));
+            history.AddRange(response.OutputItems);
+
+            var outputText = response.GetOutputText();
+            _logger.LogInformation("Received response from Azure AI Foundry Agent Service");
+            return outputText;
         }
         catch (Exception ex)
         {
