@@ -93,17 +93,24 @@ public class AIChatService : IAIChatService
                 // Build input items from history for multi-turn conversation
                 var inputItems = new List<ResponseItem>();
                 inputItems.AddRange(history);
-                inputItems.Add(ResponseItem.CreateUserMessageItem(message));
+                
+                var userMessageItem = ResponseItem.CreateUserMessageItem(message);
+                inputItems.Add(userMessageItem);
                 
                 response = await _responseClient.CreateResponseAsync(inputItems);
+                
+                // Store user message and output items for conversation continuity
+                history.Add(userMessageItem);
             }
             else
             {
                 response = await _responseClient.CreateResponseAsync(message);
+                
+                // Store user message for first message in conversation
+                history.Add(ResponseItem.CreateUserMessageItem(message));
             }
 
-            // Store input and output items for conversation continuity
-            history.Add(ResponseItem.CreateUserMessageItem(message));
+            // Store output items for conversation continuity
             history.AddRange(response.OutputItems);
 
             var outputText = response.GetOutputText();
